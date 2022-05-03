@@ -1,0 +1,55 @@
+/*
+	Example: A tip calculation FIS (fuzzy inference system)
+	Calculates tip based on 'respuesta' and 'cv'
+
+									Pablo Cingolani 
+*/
+
+FUNCTION_BLOCK tipper	// Block definition (there may be more than one block per file)
+
+// Define input variables
+VAR_INPUT				
+	respuesta : REAL;
+	cv : REAL;
+END_VAR
+
+// Define output variable
+VAR_OUTPUT				
+	prospecto: REAL;
+END_VAR
+
+// Fuzzify input variable 'respuesta': {'bien', 'regular' , 'mal'}
+FUZZIFY respuesta			
+	TERM mal := (0, 1) (4, 0) ; 
+	TERM regular := (1, 0) (4,1) (6,1) (9,0);
+	TERM bien := (6, 0) (9, 1);
+END_FUZZIFY
+
+// Fuzzify input variable 'cv': { 'bien', 'mal' }
+FUZZIFY cv			
+	TERM mal := (0, 1) (4, 0) ; 
+	TERM regular := (1, 0) (4,1) (6,1) (9,0);
+	TERM bien := (6, 0) (9, 1);
+END_FUZZIFY
+
+// Defzzzify output variable 'prospecto' : {'bien', 'regular', 'mal' }
+DEFUZZIFY prospecto			
+	TERM mal := (0, 1) (4, 0) ; 
+	TERM regular := (1, 0) (4,1) (6,1) (9,0);
+	TERM bien := (6, 0) (9, 1);
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;	//Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+// Inference rules
+RULEBLOCK No1
+	AND : MIN;	// Use 'min' for 'and'
+	ACT : MIN;	// Use 'min' activation method
+	ACCU : MAX;	// Use 'max' accumulation method
+
+	RULE 1 : IF respuesta IS bien AND cv IS regular THEN prospecto IS bien;
+	RULE 2 : IF respuesta IS regular AND cv IS mal THEN prospecto IS regular; 
+	RULE 3 : IF respuesta IS mal AND cv IS mal THEN prospecto IS mal;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
